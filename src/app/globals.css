@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------
+   Smart Budget Planner design tokens
+   Base palette from product spec:
+     cream #FAF7F5 · blush #F6C1CC · lavender #C9BCE8 · sage #B8DDB0
+     sky #B9E3EA · peach #F6C49C · ink #252329
+   Semantic tokens follow the shadcn/ui convention so base
+   components stay theme-swappable between light and dark.
+------------------------------------------------------------------- */
+
+:root {
+  --background: #faf7f5;
+  --foreground: #252329;
+  --card: #ffffff;
+  --card-foreground: #252329;
+  --popover: #ffffff;
+  --popover-foreground: #252329;
+  --primary: #252329;
+  --primary-foreground: #faf7f5;
+  --secondary: #f3ede9;
+  --secondary-foreground: #252329;
+  --muted: #f3ede9;
+  --muted-foreground: #7a7480;
+  --accent: #f6f1ee;
+  --accent-foreground: #252329;
+  --destructive: #b3412f;
+  --destructive-foreground: #faf7f5;
+  --border: #e8e0da;
+  --input: #e8e0da;
+  --ring: #c9bce8;
+
+  /* status — accessible text colors, never the only status signal */
+  --success: #3e7c3a;
+  --success-soft: #e7f2e4;
+  --warning: #9a6212;
+  --warning-soft: #fbeedb;
+  --danger: #b3412f;
+  --danger-soft: #fae7e2;
+
+  /* chart series (spec palette) */
+  --chart-1: #c9bce8;
+  --chart-2: #b8ddb0;
+  --chart-3: #b9e3ea;
+  --chart-4: #f6c1cc;
+  --chart-5: #f6c49c;
+  --chart-6: #a99ec9;
+
+  --radius: 0.75rem;
+
+  /* chart series — validated categorical palette (adjacent CVD ΔE ≥ 8 both modes) */
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+  --viz-4: #eda100;
+  --viz-5: #e87ba4;
+  --viz-6: #008300;
+  --viz-grid: #e1e0d9;
+  --viz-axis: #898781;
+}
+
+.dark {
+  --background: #1c1a1f;
+  --foreground: #f2edef;
+  --card: #252329;
+  --card-foreground: #f2edef;
+  --popover: #252329;
+  --popover-foreground: #f2edef;
+  --primary: #f2edef;
+  --primary-foreground: #252329;
+  --secondary: #2f2c33;
+  --secondary-foreground: #f2edef;
+  --muted: #2f2c33;
+  --muted-foreground: #a49fab;
+  --accent: #34303a;
+  --accent-foreground: #f2edef;
+  --destructive: #d9705c;
+  --destructive-foreground: #1c1a1f;
+  --border: #38343d;
+  --input: #38343d;
+  --ring: #c9bce8;
+
+  --success: #9fce9b;
+  --success-soft: #26332a;
+  --warning: #e5b96f;
+  --warning-soft: #372e1f;
+  --danger: #e0947f;
+  --danger-soft: #3a2622;
+
+  --chart-1: #c9bce8;
+  --chart-2: #b8ddb0;
+  --chart-3: #b9e3ea;
+  --chart-4: #f6c1cc;
+  --chart-5: #f6c49c;
+  --chart-6: #a99ec9;
+
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-3: #199e70;
+  --viz-4: #c98500;
+  --viz-5: #d55181;
+  --viz-6: #008300;
+  --viz-grid: #2c2c2a;
+  --viz-axis: #898781;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-blush: #f6c1cc;
+  --color-lavender: #c9bce8;
+  --color-sage: #b8ddb0;
+  --color-sky: #b9e3ea;
+  --color-peach: #f6c49c;
+  --color-cream: #faf7f5;
+  --color-ink: #252329;
+
+  --radius-xl: 0.9rem;
+  --radius-2xl: 1.1rem;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: var(--ring);
+    color: var(--foreground);
+  }
+}
+
+/* thin, unobtrusive scrollbars for tables/lists */
+.scroll-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
