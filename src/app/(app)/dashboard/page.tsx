@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { ArrowDownCircle, ArrowUpCircle, PiggyBank, Wallet } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Money } from "@/components/money";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
@@ -10,7 +12,7 @@ import {
   IncomeExpenseChart,
   SpendingDonut,
   CashFlowChart,
-} from "@/components/charts/charts";
+} from "@/components/charts/lazy-charts";
 import { connectDB } from "@/lib/mongodb";
 import { Category, SavingsGoal } from "@/models";
 import { requireOnboardedUser } from "@/lib/session";
@@ -20,7 +22,7 @@ import {
   currentMonthSavings,
 } from "@/services/analytics";
 import { generateNotifications } from "@/services/notifications";
-import { addMonths, formatPercent, isValidMonthKey } from "@/lib/utils";
+import { addMonths, cn, formatPercent, isValidMonthKey } from "@/lib/utils";
 
 export const metadata = { title: "Dashboard" };
 
@@ -71,6 +73,12 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const totalGoalProgress = goals.length
     ? goals.reduce((sum, g) => sum + (g.targetAmount > 0 ? Math.min(100, (g.currentAmount / g.targetAmount) * 100) : 0), 0) / goals.length
     : 0;
+
+  // Headline counts only — the per-category bars are the Budget page's job.
+  const trackedBudgets = summary.budgetProgress.filter((b) => b.budget > 0);
+  const overCount = trackedBudgets.filter((b) => b.status === "over").length;
+  const nearCount = trackedBudgets.filter((b) => b.status === "near").length;
+  const underCount = trackedBudgets.filter((b) => b.status === "under").length;
 
   return (
     <div className="space-y-6">
@@ -158,64 +166,31 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         </Card>
       </div>
 
-      {/* Budget vs Actual */}
+      {/* Budget summary — the full breakdown lives on /budget */}
       <Card>
-        <CardHeader>
-          <CardTitle>Budget vs Actual</CardTitle>
-          <CardDescription>
-            {summary.budgetProgress.filter((b) => b.budget > 0).length > 0
-              ? "Your spending against this month's budget"
-              : "No budget set for this month — visit the Budget page to create one"}
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle>Budget</CardTitle>
+            <CardDescription>
+              {trackedBudgets.length > 0
+                ? `${underCount} of ${trackedBudgets.length} categories within budget this month`
+                : "No budget set for this month yet"}
+            </CardDescription>
+          </div>
+          <Link
+            href="/budget"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            {trackedBudgets.length > 0 ? "Review budget" : "Set a budget"}
+          </Link>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {summary.budgetProgress.filter((b) => b.budget > 0).length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              Set category budgets to track your progress here.
-            </p>
-          ) : (
-            summary.budgetProgress
-              .filter((b) => b.budget > 0)
-              .slice(0, 6)
-              .map((item) => (
-                <div key={item.categoryName}>
-                  <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
-                    <span className="font-medium">{item.categoryName}</span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-muted-foreground tabular-nums">
-                        <Money value={item.actual} currency={user.currency} /> of{" "}
-                        <Money value={item.budget} currency={user.currency} />
-                      </span>
-                      <Badge
-                        variant={
-                          item.status === "over"
-                            ? "danger"
-                            : item.status === "near"
-                              ? "warning"
-                              : "success"
-                        }
-                      >
-                        {item.status === "over" ? "Over" : item.status === "near" ? "Near limit" : "Under"}
-                        {" · "}
-                        {formatPercent(item.percent)}
-                      </Badge>
-                    </span>
-                  </div>
-                  <Progress
-                    value={Math.min(100, item.percent)}
-                    aria-label={`${item.categoryName}: ${item.percent}% of budget used`}
-                    indicatorClassName={
-                      item.status === "over"
-                        ? "bg-danger"
-                        : item.status === "near"
-                          ? "bg-warning"
-                          : "bg-success"
-                    }
-                  />
-                </div>
-              ))
-          )}
-        </CardContent>
+        {trackedBudgets.length > 0 && (
+          <CardContent className="flex flex-wrap gap-2">
+            {overCount > 0 && <Badge variant="danger">{overCount} over</Badge>}
+            {nearCount > 0 && <Badge variant="warning">{nearCount} near limit</Badge>}
+            {underCount > 0 && <Badge variant="success">{underCount} under</Badge>}
+          </CardContent>
+        )}
       </Card>
 
       {/* Cash flow + savings progress */}
@@ -261,18 +236,20 @@ export default async function DashboardPage({ searchParams }: PageProps) {
             </div>
 
             {goals.length > 0 && (
-              <div>
-                <div className="mb-2 flex items-baseline justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Across {goals.length} {goals.length === 1 ? "goal" : "goals"}
-                  </span>
-                  <span className="text-xl font-bold">{formatPercent(totalGoalProgress)}</span>
+              <div className="flex items-center justify-between gap-3 border-t border-border/60 pt-4">
+                <div>
+                  <p className="text-sm font-medium">
+                    {goals.length} savings {goals.length === 1 ? "goal" : "goals"} ·{" "}
+                    {formatPercent(totalGoalProgress)} complete
+                  </p>
+                  <p className="text-xs text-muted-foreground">Averaged across every goal</p>
                 </div>
-                <Progress
-                  value={totalGoalProgress}
-                  aria-label={`Overall goal progress: ${totalGoalProgress}%`}
-                  indicatorClassName="bg-[var(--viz-1)]"
-                />
+                <Link
+                  href="/savings"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                >
+                  View goals
+                </Link>
               </div>
             )}
           </CardContent>

@@ -6,16 +6,15 @@ A commercial personal-finance SaaS — a smarter way to organize income, expense
 
 ## Features
 
-- **Dashboard** — live stat cards with month-over-month trends, income vs. expenses, spending breakdown, budget progress, cash-flow and savings charts. All computed from real data — nothing hard-coded.
+- **Dashboard** — live stat cards with month-over-month trends, income vs. expenses, spending breakdown, a budget summary, cash-flow and savings charts. All computed from real data — nothing hard-coded.
 - **Transactions** — income / expense / savings / bill / debt records with filters, search, pagination, and full CRUD.
-- **Budgets** — per-category monthly limits with under / near / over status; one-click copy from last month.
+- **Budgets** — per-category monthly limits with under / near / over status and one-click copy from last month, plus a **Priorities** tab rolling the same month up by Essential → Avoidable tier.
 - **Bills** — recurring bills with frequencies and reminders; marking paid records the transaction and advances the schedule.
 - **Calendar** — month grid combining bill due dates (auto-generated) with custom events.
 - **Savings goals** — targets, contributions, deadlines, projected completion.
 - **Debt tracking** — balances, payments, and a debt-reduction trend chart.
-- **Priorities** — spending rolled up by Essential → Avoidable tiers.
-- **Reports** — any period, category/budget/cash-flow views, CSV export.
-- **Settings** — 8 currencies, 2 date formats, light/dark/system theme, custom categories, notification controls.
+- **Reports** — any period, category and budget-performance views, CSV export.
+- **Settings** — 8 currencies, 2 date formats, light/dark/system theme, custom categories, notification controls, and a guarded "clear all financial data" action for switching off the sample data.
 - **Notifications** — deduplicated bill-due, budget-alert, and savings-milestone alerts.
 - **Marketing site** — landing, features, pricing, FAQ.
 

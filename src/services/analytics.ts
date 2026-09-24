@@ -1,4 +1,5 @@
 import { Budget, Transaction } from "@/models";
+import { toObjectId } from "@/lib/mongodb";
 import type { BudgetProgress, CategorySpend, MonthTotals, MonthlySummary } from "@/types";
 import { addMonths, monthKey, monthRange, parseMonthKey, round2 } from "@/lib/utils";
 
@@ -15,15 +16,16 @@ async function totalsForRange(
   start: Date,
   end: Date
 ): Promise<MonthTotals & { byCategory: CategorySpend[] }> {
+  const uid = toObjectId(userId);
   const [byType, byCategory] = await Promise.all([
     Transaction.aggregate<{ _id: string; total: number }>([
-      { $match: { userId: userId as never, date: { $gte: start, $lte: end } } },
+      { $match: { userId: uid, date: { $gte: start, $lte: end } } },
       { $group: { _id: "$type", total: { $sum: "$amount" } } },
     ]),
     Transaction.aggregate<{ _id: string; categoryId: unknown; total: number }>([
       {
         $match: {
-          userId: userId as never,
+          userId: uid,
           type: "expense",
           date: { $gte: start, $lte: end },
         },
@@ -55,8 +57,9 @@ async function totalsForRange(
 }
 
 /**
- * The single monthly engine behind the dashboard, budget, priorities, and
- * reports pages. Everything is computed from real transaction data.
+ * The single monthly engine behind the dashboard, budget (both the plan and
+ * priorities views), and reports pages. Everything is computed from real
+ * transaction data.
  */
 export async function getMonthlySummary(userId: string, month: string): Promise<MonthlySummary> {
   const { year, month: m } = parseMonthKey(month);
@@ -139,7 +142,7 @@ export async function getCashFlow(
   }>([
     {
       $match: {
-        userId: userId as never,
+        userId: toObjectId(userId),
         date: { $gte: start, $lte: end },
         type: { $in: ["income", "expense", "savings"] },
       },
@@ -168,7 +171,7 @@ export async function currentMonthSavings(userId: string): Promise<number> {
   const rows = await Transaction.aggregate<{ total: number }>([
     {
       $match: {
-        userId: userId as never,
+        userId: toObjectId(userId),
         type: "savings",
         date: { $gte: start, $lte: end },
       },
@@ -189,7 +192,7 @@ export async function getYearlyTotals(
     _id: { y: number; m: number; type: string };
     total: number;
   }>([
-    { $match: { userId: userId as never, date: { $gte: start, $lte: end } } },
+    { $match: { userId: toObjectId(userId), date: { $gte: start, $lte: end } } },
     {
       $group: {
         _id: { y: { $year: "$date" }, m: { $month: "$date" }, type: "$type" },

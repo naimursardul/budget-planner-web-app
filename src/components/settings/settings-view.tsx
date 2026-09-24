@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategoryManager } from "@/components/settings/category-manager";
+import { DataManager } from "@/components/settings/data-manager";
 import {
   updateSettingsAction,
   updateNotificationPrefsAction,
@@ -38,6 +39,7 @@ interface SettingsUser {
   dateFormat: DateFormat;
   monthlyIncome: number;
   monthlySavingsGoal: number;
+  isDemo: boolean;
   notificationPrefs: {
     billReminders: boolean;
     budgetAlerts: boolean;
@@ -125,6 +127,7 @@ export function SettingsView({
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
         <TabsTrigger value="appearance">Appearance</TabsTrigger>
         <TabsTrigger value="security">Security</TabsTrigger>
+        <TabsTrigger value="data">Data</TabsTrigger>
       </TabsList>
 
       <TabsContent value="profile">
@@ -310,6 +313,10 @@ export function SettingsView({
             </form>
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="data">
+        <DataManager isDemo={user.isDemo} />
       </TabsContent>
     </Tabs>
   );

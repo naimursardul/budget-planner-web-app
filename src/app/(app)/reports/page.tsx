@@ -12,11 +12,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { IncomeExpenseChart, CashFlowChart } from "@/components/charts/charts";
 import { connectDB } from "@/lib/mongodb";
 import { Transaction } from "@/models";
 import { requireOnboardedUser } from "@/lib/session";
-import { getCashFlow } from "@/services/analytics";
 import { addMonths, formatPercent, monthKey, round2 } from "@/lib/utils";
 import { ReportPeriodSelector } from "@/components/reports/period-selector";
 
@@ -29,7 +27,7 @@ interface PageProps {
 const PERIODS = ["this_month", "last_month", "last_3", "last_6", "this_year", "custom"] as const;
 type Period = (typeof PERIODS)[number];
 
-function periodRange(period: Period, from?: string, to?: string): { from: string; to: string; months: number; label: string } {
+function periodRange(period: Period, from?: string, to?: string): { from: string; to: string; label: string } {
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const thisMonth = monthKey(now);
@@ -40,7 +38,6 @@ function periodRange(period: Period, from?: string, to?: string): { from: string
       return {
         from: `${key}-01`,
         to: new Date(y, m, 0).toISOString().slice(0, 10),
-        months: 1,
         label: "Last month",
       };
     }
@@ -48,33 +45,29 @@ function periodRange(period: Period, from?: string, to?: string): { from: string
       return {
         from: `${addMonths(thisMonth, -2)}-01`,
         to: today,
-        months: 3,
         label: "Last 3 months",
       };
     case "last_6":
       return {
         from: `${addMonths(thisMonth, -5)}-01`,
         to: today,
-        months: 6,
         label: "Last 6 months",
       };
     case "this_year":
       return {
         from: `${now.getFullYear()}-01-01`,
         to: today,
-        months: now.getMonth() + 1,
         label: "This year",
       };
     case "custom":
       return {
         from: from && !Number.isNaN(Date.parse(from)) ? from : `${thisMonth}-01`,
         to: to && !Number.isNaN(Date.parse(to)) ? to : today,
-        months: 6,
         label: "Custom range",
       };
     case "this_month":
     default:
-      return { from: `${thisMonth}-01`, to: today, months: 1, label: "This month" };
+      return { from: `${thisMonth}-01`, to: today, label: "This month" };
   }
 }
 
@@ -84,17 +77,14 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   const period = (PERIODS as readonly string[]).includes(params.period ?? "")
     ? (params.period as Period)
     : "this_month";
-  const { from, to, months, label } = periodRange(period, params.from, params.to);
+  const { from, to, label } = periodRange(period, params.from, params.to);
 
   await connectDB();
 
-  const [rows, cashFlow] = await Promise.all([
-    Transaction.find({
-      userId: user.id as never,
-      date: { $gte: new Date(from), $lte: new Date(`${to}T23:59:59.999`) },
-    }).lean(),
-    getCashFlow(user.id, monthKey(new Date(`${to}T12:00:00`)), Math.max(3, Math.min(12, months))),
-  ]);
+  const rows = await Transaction.find({
+    userId: user.id as never,
+    date: { $gte: new Date(from), $lte: new Date(`${to}T23:59:59.999`) },
+  }).lean();
 
   const totals = { income: 0, expense: 0, savings: 0, bill: 0, debt: 0 };
   const byCategory = new Map<string, { amount: number; type: string }>();
@@ -162,33 +152,11 @@ export default async function ReportsPage({ searchParams }: PageProps) {
             ))}
           </div>
 
-          <Tabs defaultValue="cashflow">
+          <Tabs defaultValue="categories">
             <TabsList className="flex-wrap">
-              <TabsTrigger value="cashflow">Cash flow</TabsTrigger>
               <TabsTrigger value="categories">Categories</TabsTrigger>
               <TabsTrigger value="budget">Budget performance</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="cashflow">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Income vs Expenses</CardTitle>
-                  <CardDescription>Monthly comparison over the period</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <IncomeExpenseChart data={cashFlow} currency={user.currency} />
-                </CardContent>
-              </Card>
-              <Card className="mt-4">
-                <CardHeader>
-                  <CardTitle>Cash Flow Trend</CardTitle>
-                  <CardDescription>Income, expenses and savings per month</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <CashFlowChart data={cashFlow} currency={user.currency} />
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="categories">
               <Card>

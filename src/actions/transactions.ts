@@ -20,7 +20,6 @@ function revalidateAll() {
     "/calendar",
     "/savings",
     "/debt",
-    "/priorities",
     "/reports",
     "/bills",
   ]) {

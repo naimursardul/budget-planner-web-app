@@ -4,8 +4,17 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
+import {
+  Bill,
+  Budget,
+  CalendarEvent,
+  Debt,
+  Notification,
+  SavingsGoal,
+  Transaction,
+} from "@/models";
 import { requireUser } from "@/lib/session";
-import { settingsSchema, notificationPrefsSchema } from "@/lib/validations/settings";
+import { settingsSchema, notificationPrefsSchema, CLEAR_DATA_PHRASE } from "@/lib/validations/settings";
 import { changePasswordSchema } from "@/lib/validations/auth";
 import { round2 } from "@/lib/utils";
 
@@ -111,4 +120,60 @@ export async function changePasswordAction(
   }
 
   return { success: "Password changed" };
+}
+
+/**
+ * Wipe every financial record for the signed-in user. This is the way out of
+ * the onboarding sample data and into real numbers.
+ *
+ * Deliberately keeps categories, profile, preferences and purchased access —
+ * only activity is removed, so the workspace stays usable straight afterwards.
+ * `Purchase` records are never touched: they are the proof of payment.
+ */
+export async function clearFinancialDataAction(
+  _prev: ActionState | undefined,
+  formData: FormData
+): Promise<ActionState> {
+  const user = await requireUser();
+
+  if (formData.get("confirm") !== CLEAR_DATA_PHRASE) {
+    return { error: `Type ${CLEAR_DATA_PHRASE} to confirm.` };
+  }
+  if (user.isDemo) {
+    return {
+      error: "The shared demo account can't be cleared. Register your own account to start fresh.",
+    };
+  }
+
+  try {
+    await connectDB();
+    // Every delete is scoped to the session user — never a bare deleteMany.
+    const userId = user.id as never;
+    await Promise.all([
+      Transaction.deleteMany({ userId }),
+      Budget.deleteMany({ userId }),
+      Bill.deleteMany({ userId }),
+      CalendarEvent.deleteMany({ userId }),
+      SavingsGoal.deleteMany({ userId }),
+      Debt.deleteMany({ userId }),
+      Notification.deleteMany({ userId }),
+    ]);
+  } catch {
+    return { error: "We couldn't clear your data. Please try again." };
+  }
+
+  for (const path of [
+    "/dashboard",
+    "/transactions",
+    "/budget",
+    "/calendar",
+    "/savings",
+    "/debt",
+    "/reports",
+    "/bills",
+    "/settings",
+  ]) {
+    revalidatePath(path);
+  }
+  return { success: "All financial data cleared. Your categories and settings were kept." };
 }

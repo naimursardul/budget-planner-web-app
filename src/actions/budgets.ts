@@ -68,7 +68,6 @@ export async function saveBudgetAction(
 
   revalidatePath("/budget");
   revalidatePath("/dashboard");
-  revalidatePath("/priorities");
   revalidatePath("/reports");
   return { success: "Budget saved" };
 }

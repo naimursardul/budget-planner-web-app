@@ -6,7 +6,6 @@ import {
   CalendarDays,
   PiggyBank,
   Landmark,
-  Flag,
   BarChart3,
   Settings,
   CircleHelp,
@@ -28,7 +27,7 @@ export const MAIN_NAV: NavItem[] = [
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/savings", label: "Savings", icon: PiggyBank },
   { href: "/debt", label: "Debt", icon: Landmark },
-  { href: "/priorities", label: "Priorities", icon: Flag },
+  // Priorities is a tab on /budget — same data, same month, one nav entry.
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 

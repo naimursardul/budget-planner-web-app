@@ -22,3 +22,10 @@ export const notificationPrefsSchema = z.object({
 
 export type SettingsInput = z.infer<typeof settingsSchema>;
 export type NotificationPrefsInput = z.infer<typeof notificationPrefsSchema>;
+
+/**
+ * Typed by the user before any data is deleted — no one-click data loss.
+ * Lives here rather than in the action because a `"use server"` module may
+ * only export async functions, and both sides need the same string.
+ */
+export const CLEAR_DATA_PHRASE = "DELETE";

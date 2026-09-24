@@ -74,6 +74,7 @@ export default async function SettingsPage() {
           dateFormat: user.dateFormat,
           monthlyIncome: user.monthlyIncome,
           monthlySavingsGoal: user.monthlySavingsGoal,
+          isDemo: user.isDemo,
           notificationPrefs: {
             billReminders: user.notificationPrefs.billReminders,
             budgetAlerts: user.notificationPrefs.budgetAlerts,

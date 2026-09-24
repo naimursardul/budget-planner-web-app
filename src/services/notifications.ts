@@ -1,5 +1,6 @@
 import { Bill, Budget, Notification, SavingsGoal, Transaction } from "@/models";
 import { budgetStatus } from "@/services/analytics";
+import { toObjectId } from "@/lib/mongodb";
 import { monthRange } from "@/lib/utils";
 
 interface GeneratedNotification {
@@ -58,7 +59,7 @@ export async function generateNotifications(
       Transaction.aggregate<{ _id: string; total: number }>([
         {
           $match: {
-            userId: userId as never,
+            userId: toObjectId(userId),
             type: "expense",
             date: { $gte: start, $lte: end },
           },

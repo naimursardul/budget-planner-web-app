@@ -7,8 +7,8 @@ import { Money } from "@/components/money";
 import { EmptyState } from "@/components/empty-state";
 import { DebtFormDialog, PayDebtDialog } from "@/components/debt/debt-forms";
 import { DeleteDebtButton } from "@/components/debt/delete-debt-button";
-import { DebtReductionChart } from "@/components/charts/charts";
-import { connectDB } from "@/lib/mongodb";
+import { DebtReductionChart } from "@/components/charts/lazy-charts";
+import { connectDB, toObjectId } from "@/lib/mongodb";
 import { Debt, Transaction } from "@/models";
 import { requireOnboardedUser } from "@/lib/session";
 import { addMonths, monthKey } from "@/lib/utils";
@@ -31,7 +31,7 @@ export default async function DebtPage({ searchParams }: PageProps) {
   const [debts, payments] = await Promise.all([
     Debt.find({ userId: user.id as never }).sort({ currentBalance: -1 }).lean(),
     Transaction.aggregate<{ _id: { y: number; m: number }; total: number }>([
-      { $match: { userId: user.id as never, type: "debt" } },
+      { $match: { userId: toObjectId(user.id), type: "debt" } },
       {
         $group: {
           _id: { y: { $year: "$date" }, m: { $month: "$date" } },

@@ -48,6 +48,12 @@ export async function connectDB(): Promise<typeof mongoose> {
   return cached.conn;
 }
 
+/**
+ * Mongoose casts `find` / `findOne` / `updateOne` filters against the schema,
+ * but **aggregation pipelines are passed through raw** — a `$match` on a
+ * string `userId` silently matches zero documents against an ObjectId field.
+ * Always wrap the id with this in an aggregation.
+ */
 export function toObjectId(id: string): mongoose.Types.ObjectId {
   return new mongoose.Types.ObjectId(id);
 }

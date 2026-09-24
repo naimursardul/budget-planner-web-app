@@ -16,7 +16,7 @@ export interface ActionState {
   success?: string;
 }
 
-const CATEGORY_VIEWS = ["/priorities", "/settings", "/budget", "/transactions", "/dashboard"];
+const CATEGORY_VIEWS = ["/settings", "/budget", "/transactions", "/dashboard"];
 
 function revalidateCategoryViews() {
   for (const path of CATEGORY_VIEWS) revalidatePath(path);
